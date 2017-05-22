@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour {
     public GameObject player;
+    public float camSpeed;
+
     private Vector3 offset;
     private void Start()
     {
@@ -12,6 +14,6 @@ public class CameraController : MonoBehaviour {
 
     private void Update()
     {
-        transform.position = player.transform.position + offset;
+        transform.position = Vector3.Lerp(transform.position,player.transform.position + offset, camSpeed * Time.deltaTime);
     }
 }

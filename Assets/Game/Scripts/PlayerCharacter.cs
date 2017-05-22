@@ -32,6 +32,7 @@ public class PlayerCharacter : MonoBehaviour {
             if (transform.position.z + (1 * hopSpaces) < forwardMax)
             {
                 Move(Vector3.forward, 0);
+                if (transform.position.z > GameManager.MOVE_BACKWARDS_DISTANCE) backwardMax = transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE;
                 EventManager.OnPlayerMoveZ(transform.position.z);
             }
         }

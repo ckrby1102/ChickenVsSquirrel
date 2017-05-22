@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
-    public int initializeMap = 1;
+    public static int MOVE_BACKWARDS_DISTANCE = 6;
 
     private LevelManager LM;
     private GameObject player;
     private GameObject spawnTileThreshold;
+
+    private int initializeMap = 25;
 
     private void Start()
     {
@@ -16,14 +18,16 @@ public class GameManager : MonoBehaviour {
         LM = GetComponent<LevelManager>();
         spawnTileThreshold = GameObject.FindGameObjectWithTag("Threshold");
 
+        /* For Infinite Runner version
+         * 
         for(int i = 0; i < initializeMap; i++)
         {
             LM.SpawnTile();
-        }
+        } */
     }
 
     private void Update()
-    {
-        spawnTileThreshold.transform.position = new Vector3(player.transform.position.x, 0, spawnTileThreshold.transform.position.z);
+    {   //For Infinite Runner version
+        //spawnTileThreshold.transform.position = new Vector3(player.transform.position.x, 0, spawnTileThreshold.transform.position.z);
     }
 }
