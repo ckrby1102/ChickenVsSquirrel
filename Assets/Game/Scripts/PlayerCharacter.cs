@@ -7,6 +7,7 @@ public class PlayerCharacter : MonoBehaviour {
 
     public float hopSpaces = 1.0f;
     public float speed = 1.0f;
+    private float backwardMax = -1.0f, forwardMax = Mathf.Infinity, rightMax = 20.0f, leftMax = -16.0f;
     public Quaternion myRotation;
 
     protected Animator anim;
@@ -26,10 +27,30 @@ public class PlayerCharacter : MonoBehaviour {
 
         if (moving && (transform.position == endpos)) moving = false;
 
-        if (!moving && Input.GetKeyUp(KeyCode.W)) Move(Vector3.forward, 0);
-        else if (!moving && Input.GetKeyUp(KeyCode.S)) Move(-Vector3.forward, 360);
-        else if (!moving && Input.GetKeyUp(KeyCode.D)) Move(Vector3.right, 1);
-        else if (!moving && Input.GetKeyUp(KeyCode.A)) Move(-Vector3.right, -1);
+        if (!moving && Input.GetKeyUp(KeyCode.W))
+        {
+            if (transform.position.z + (1 * hopSpaces) < forwardMax)
+            {
+                Move(Vector3.forward, 0);
+                EventManager.OnPlayerMoveZ(transform.position.z);
+            }
+        }
+        else if (!moving && Input.GetKeyUp(KeyCode.S))
+        {
+            if (transform.position.z + (-1 * hopSpaces) > backwardMax)
+            {
+                Move(-Vector3.forward, 360);
+                EventManager.OnPlayerMoveZ(transform.position.z);
+            }
+        }
+        else if (!moving && Input.GetKeyUp(KeyCode.D))
+        {
+            if (transform.position.x + (1 * hopSpaces) < rightMax) Move(Vector3.right, 1);
+        }
+        else if (!moving && Input.GetKeyUp(KeyCode.A))
+        {
+            if (transform.position.x + (-1 * hopSpaces) > leftMax) Move(-Vector3.right, -1);
+        }
 
         transform.position = Vector3.MoveTowards(transform.position, endpos, Time.deltaTime * speed);
 
