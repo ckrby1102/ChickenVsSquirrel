@@ -7,7 +7,7 @@ public class PlayerCharacter : MonoBehaviour {
 
     public float hopSpaces = 1.0f;
     public float speed = 1.0f;
-    private float backwardMax = -1.0f, forwardMax = Mathf.Infinity, rightMax = 20.0f, leftMax = -16.0f;
+    public float backwardMax = -1.0f, forwardMax = Mathf.Infinity, rightMax = 20.0f, leftMax = -16.0f;
     public Quaternion myRotation;
 
     protected Animator anim;
@@ -32,7 +32,11 @@ public class PlayerCharacter : MonoBehaviour {
             if (transform.position.z + (1 * hopSpaces) < forwardMax)
             {
                 Move(Vector3.forward, 0);
-                if (transform.position.z > GameManager.MOVE_BACKWARDS_DISTANCE) backwardMax = transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE;
+                if (transform.position.z > GameManager.MOVE_BACKWARDS_DISTANCE)
+                {
+                    if(backwardMax < transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE)
+                        backwardMax = transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE;
+                }
                 EventManager.OnPlayerMoveZ(transform.position.z);
             }
         }

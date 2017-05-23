@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
-    public static int MOVE_BACKWARDS_DISTANCE = 6;
+    public static int MOVE_BACKWARDS_DISTANCE = 5;
 
     private LevelManager LM;
     private GameObject player;

@@ -135,10 +135,10 @@ public class LevelManager : MonoBehaviour {
     public void CheckTiles(float playerPosZ)
     {
         for (int i = 0; i < tiles.Count; i++) {
-            if (Mathf.Abs(tiles[i].transform.position.z - playerPosZ) > 26 && tiles[i].activeInHierarchy) tiles[i].SetActive(false);
-            else if (Mathf.Abs(tiles[i].transform.position.z - playerPosZ) < 26 && !tiles[i].activeInHierarchy) tiles[i].SetActive(true);
+            if (Mathf.Abs(tiles[i].transform.position.z - playerPosZ) > 30 && tiles[i].activeInHierarchy) tiles[i].SetActive(false);
+            else if (Mathf.Abs(tiles[i].transform.position.z - playerPosZ) < 30 && !tiles[i].activeInHierarchy) tiles[i].SetActive(true);
 
-            if (tiles[i].transform.position.z - playerPosZ < GameManager.MOVE_BACKWARDS_DISTANCE * -2 - 1) RemoveAndDestroy(tiles[i]);
+            if (tiles[i].transform.position.z - playerPosZ < 6 * -2 - 1) RemoveAndDestroy(tiles[i]);
         }
     }
 
