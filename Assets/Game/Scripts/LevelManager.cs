@@ -11,6 +11,7 @@ public class LevelManager : MonoBehaviour {
     public int min_waterLength = 1, max_waterLength = 5;
     public int levelLength = 100;
 
+    public static GameObject[] OBSTACLE_PREFABS;
     [SerializeField]
     private GameObject[] startingAreaPrefabs;
     [SerializeField]
@@ -31,6 +32,7 @@ public class LevelManager : MonoBehaviour {
         fieldPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Field");
         roadPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Road");
         waterPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Water");
+        OBSTACLE_PREFABS = Resources.LoadAll<GameObject>("ObstaclePrefabs");
         lastTile = new Vector3(0, 0, 0);
 
         EventManager.OnPlayerMoveZ_Event += CheckTiles;
