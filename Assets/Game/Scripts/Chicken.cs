@@ -7,5 +7,18 @@ public class Chicken : PlayerCharacter{
     protected override void Start() {
         base.Start();
         anim = transform.GetChild(0).GetComponent<Animator>();
+        canSwim = false;
+    }
+
+    protected override void DeathByWater()
+    {
+        base.DeathByWater();
+
+        if (!canSwim)
+        {
+            print("Drowned");
+        }
+        else print("Nope");
+
     }
 }

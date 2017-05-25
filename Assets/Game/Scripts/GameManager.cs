@@ -14,6 +14,8 @@ public class GameManager : MonoBehaviour {
 
     private void Start()
     {
+        Random.InitState((int)System.DateTime.Now.Ticks);
+
         player = GameObject.FindGameObjectWithTag("Player");
         LM = GetComponent<LevelManager>();
         spawnTileThreshold = GameObject.FindGameObjectWithTag("Threshold");

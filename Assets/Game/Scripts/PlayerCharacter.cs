@@ -11,13 +11,20 @@ public class PlayerCharacter : MonoBehaviour {
     public Quaternion myRotation;
 
     protected Animator anim;
-    Rigidbody playerRigidBody;
+    protected bool canSwim = false;
 
-    private Vector3 endpos;
+    public Vector3 endpos;
     private bool moving = false;
+
+    private bool isOnLog = false;
+    private Log logScript;
+    private Vector3 logOffset;
+    private Transform currentLogSnapPoint;
+    private Transform targetLogSnapPoint;
+
+
     protected virtual void Start()
     {
-        playerRigidBody = GetComponent<Rigidbody>();
         endpos = transform.position;
         myRotation = transform.rotation;
     }
@@ -25,58 +32,178 @@ public class PlayerCharacter : MonoBehaviour {
     void Update()
     {
 
-        if (moving && (transform.position == endpos)) moving = false;
-
-        if (!moving && Input.GetKeyUp(KeyCode.W))
+        if (moving && (transform.position == endpos))
         {
-            if (transform.position.z + (1 * hopSpaces) < forwardMax)
+            moving = false;
+            CheckFloorType();
+
+            if (isOnLog)
             {
-                Move(Vector3.forward, 0);
-                if (transform.position.z > GameManager.MOVE_BACKWARDS_DISTANCE)
+                currentLogSnapPoint = targetLogSnapPoint;
+            }
+        }
+        else
+        {
+            if (!moving && Input.GetKeyUp(KeyCode.W))
+            {
+                if (transform.position.z + (1 * hopSpaces) < forwardMax)
                 {
-                    if(backwardMax < transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE)
-                        backwardMax = transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE;
+                    Move(Vector3.forward, 0);
+                    if (transform.position.z > GameManager.MOVE_BACKWARDS_DISTANCE)
+                    {
+                        if (backwardMax < transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE)
+                            backwardMax = transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE;
+                    }
+                    EventManager.OnPlayerMoveZ(transform.position.z);
                 }
-                EventManager.OnPlayerMoveZ(transform.position.z);
             }
-        }
-        else if (!moving && Input.GetKeyUp(KeyCode.S))
-        {
-            if (transform.position.z + (-1 * hopSpaces) > backwardMax)
+            else if (!moving && Input.GetKeyUp(KeyCode.S))
             {
-                Move(-Vector3.forward, 360);
-                EventManager.OnPlayerMoveZ(transform.position.z);
+                if (transform.position.z + (-1 * hopSpaces) > backwardMax)
+                {
+                    Move(-Vector3.forward, 360);
+                    EventManager.OnPlayerMoveZ(transform.position.z);
+                }
             }
-        }
-        else if (!moving && Input.GetKeyUp(KeyCode.D))
-        {
-            if (transform.position.x + (1 * hopSpaces) < rightMax) Move(Vector3.right, 1);
-        }
-        else if (!moving && Input.GetKeyUp(KeyCode.A))
-        {
-            if (transform.position.x + (-1 * hopSpaces) > leftMax) Move(-Vector3.right, -1);
-        }
+            else if (!moving && Input.GetKeyUp(KeyCode.D))
+            {
+                if (transform.position.x + (1 * hopSpaces) < rightMax) Move(Vector3.right, 1);
+            }
+            else if (!moving && Input.GetKeyUp(KeyCode.A))
+            {
+                if (transform.position.x + (-1 * hopSpaces) > leftMax) Move(-Vector3.right, -1);
+            }
 
-        transform.position = Vector3.MoveTowards(transform.position, endpos, Time.deltaTime * speed);
-
+        }
+        if (isOnLog)
+        {
+            endpos = targetLogSnapPoint.position;
+            transform.position = Vector3.MoveTowards(transform.position, endpos, Time.deltaTime * (speed + logScript.speed));
+        }
+        else
+        {
+            transform.position = Vector3.MoveTowards(transform.position, endpos, Time.deltaTime * speed);
+        }
         Animating(moving);
 
 
         if (Input.GetKeyUp(KeyCode.F)) anim.SetTrigger("Die");
     }
 
+
     private void Move(Vector3 target, float angle) {
-        moving = true;
-        endpos = transform.position + (target * hopSpaces);
+        if (!CheckObstacleCollision(target))
+        {
+            if(target.x == 0) isOnLog = false;
+            moving = true;
+            int snapX = (int)transform.position.x;
+            if (isOnLog)
+            {
+                Vector3 newPos = currentLogSnapPoint.position + (target * hopSpaces);
+                for (int i = 0; i < logScript.snapPoints.Length; i++)
+                {
+                    if (newPos == logScript.snapPoints[i].position)
+                    {
+                        targetLogSnapPoint = logScript.snapPoints[i];
+                    }
+                }
 
-        myRotation = new Quaternion(myRotation.x, angle, myRotation.z, myRotation.w);
-        transform.rotation = myRotation;
+                if (targetLogSnapPoint != currentLogSnapPoint) endpos = targetLogSnapPoint.position;
+                else
+                {
+                    isOnLog = false;
+                    Move(target, angle);
+                }
+            }
+            else
+            {
+                endpos = new Vector3(snapX, transform.position.y, transform.position.z) + (target * hopSpaces);
+            }
+
+            myRotation = new Quaternion(myRotation.x, angle, myRotation.z, myRotation.w);
+            transform.rotation = myRotation;
+        }
     }
-
     private void Animating(bool t)
     {
         anim.SetBool("IsMoving", t);
     }
+
+
+
+    bool CheckObstacleCollision(Vector3 target)
+    {
+        int snapX = (int)transform.position.x;
+        RaycastHit hit;
+        Vector3 origin = new Vector3(snapX, transform.position.y+ 0.5f, transform.position.z);
+        if (Physics.Raycast(origin, target, out hit, 1))
+        {
+            if (hit.transform.tag == "StaticObstacle")
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void CheckFloorType()
+    {
+        RaycastHit hit;
+        Vector3 origin = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
+        if (Physics.Raycast(origin, Vector3.down, out hit, 1))
+        {
+            switch (hit.transform.tag)
+            {
+                case "Water":
+                    {
+                        //Check if on standable object
+                        //else drown unless chracter can swim
+                        DeathByWater();
+                    }
+                    break;
+                case "Road":
+                    {
+                        //if character is COW, slow down vehicles on road
+                    }
+                    break;
+                case "Grass":
+                    {
+                        //do nothing
+                    }
+                    break;
+                case "Log":
+                    {
+                        //force player to move with log
+                        RideLog(hit.transform);
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void RideLog(Transform log)
+    {
+        logScript = log.transform.GetComponent<Log>();
+
+        float closest = Mathf.Infinity;
+        for (int i = 0; i < logScript.snapPoints.Length; i++)
+        {
+            float dist = Vector3.Distance(logScript.snapPoints[i].position, transform.position);
+            if (dist < closest)
+            {
+                closest = dist;
+                currentLogSnapPoint = logScript.snapPoints[i];
+                targetLogSnapPoint = currentLogSnapPoint;
+            }
+        }
+
+        isOnLog = true;
+    }
+    protected virtual void DeathByWater()
+    {
+        print("Drowned?");
+    }
+
 
     
 }

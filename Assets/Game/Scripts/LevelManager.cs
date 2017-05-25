@@ -4,14 +4,18 @@ using UnityEngine;
 
 public class LevelManager : MonoBehaviour {
 
+    public static int MAX_NUM_OF_OBSTACLES = 15;
+
     public Transform parent;
     public int spawnDistance = 1;
     public int min_fieldLength = 1, max_fieldLength = 5;
     public int min_roadLength = 1, max_roadLength = 5;
     public int min_waterLength = 1, max_waterLength = 5;
     public int levelLength = 100;
+    public int m_max_num_of_obstacles = 15;
 
-    public static GameObject[] OBSTACLE_PREFABS;
+    public static GameObject[] FIELD_OBSTACLE_PREFABS;
+    public static GameObject[] WATER_OBSTACLE_PREFABS;
     [SerializeField]
     private GameObject[] startingAreaPrefabs;
     [SerializeField]
@@ -32,10 +36,13 @@ public class LevelManager : MonoBehaviour {
         fieldPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Field");
         roadPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Road");
         waterPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Water");
-        OBSTACLE_PREFABS = Resources.LoadAll<GameObject>("ObstaclePrefabs");
+        FIELD_OBSTACLE_PREFABS = Resources.LoadAll<GameObject>("ObstaclePrefabs/Field");
+        WATER_OBSTACLE_PREFABS = Resources.LoadAll<GameObject>("ObstaclePrefabs/Water");
         lastTile = new Vector3(0, 0, 0);
 
         EventManager.OnPlayerMoveZ_Event += CheckTiles;
+
+        MAX_NUM_OF_OBSTACLES = m_max_num_of_obstacles;
 
         /* For Infinite Runner version
          * 
@@ -118,12 +125,17 @@ public class LevelManager : MonoBehaviour {
                     {
                         if (waterPrefabs.Length > 0)
                         {
+                            int randDir = Random.Range(-2, 2);
+                            randDir = randDir < 0 ? -1 : 1;
+                            
                             int randLength = Random.Range(min_waterLength, max_waterLength);
                             for (int i = 0; i < randLength; i++)
                             {
                                 int randTile = Random.Range(0, waterPrefabs.Length);
                                 GameObject temp = Instantiate(waterPrefabs[randTile], parent) as GameObject;
                                 temp.transform.position = new Vector3(temp.transform.position.x, 0, lastTile.z + 1);
+                                temp.transform.GetChild(0).GetComponent<Water>().waterFlow = randDir;
+                                randDir *= -1;
                                 lastTile = temp.transform.position;
                                 tiles.Add(temp);
                             }
