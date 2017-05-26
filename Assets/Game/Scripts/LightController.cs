@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Road : Tile {
+public class LightController : MonoBehaviour {
 
 	// Use this for initialization
-	protected override void Start () {
+	void Start () {
 		
 	}
 	

@@ -2,7 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LevelManager : MonoBehaviour {
+public class LevelManager : ChrisCustomBehaviour {
+
+    #region ENUMS
+    #endregion
+    #region Static Variables
+    #endregion
+    #region Public Variables
+    #endregion
+    #region Private Variables
+    private int initialMapSizeForInfiniteRunner = 15;
+    #endregion
 
     public static int MAX_NUM_OF_OBSTACLES = 15;
 
@@ -30,8 +40,10 @@ public class LevelManager : MonoBehaviour {
     private int lastEnv;
 
     private Vector3 lastTile;
-    private void Awake()
+
+    public override void Init()
     {
+        base.Init();
         startingAreaPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/StartingArea");
         fieldPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Field");
         roadPrefabs = Resources.LoadAll<GameObject>("TilePrefabs/Road");
@@ -40,33 +52,12 @@ public class LevelManager : MonoBehaviour {
         WATER_OBSTACLE_PREFABS = Resources.LoadAll<GameObject>("ObstaclePrefabs/Water");
         lastTile = new Vector3(0, 0, 0);
 
-        EventManager.OnPlayerMoveZ_Event += CheckTiles;
+        EventManager.PLAYER_MOVE_Z += CheckTiles;
 
         MAX_NUM_OF_OBSTACLES = m_max_num_of_obstacles;
 
-        /* For Infinite Runner version
-         * 
-        EventManager.OnCollideThreshold_Event += SpawnTile; */
-
-    }
-
-    private void Start()
-    {
         InititializeLevel();
     }
-    /* For Infinite Runner version
-     * 
-    public void SpawnTile()
-    {
-        if (tilePrefabs.Length > 0)
-        {
-            int randTile = Random.Range(0, tilePrefabs.Length);
-            GameObject temp = Instantiate(tilePrefabs[randTile], parent) as GameObject;
-            temp.transform.position = new Vector3(temp.transform.position.x, 0, lastTile.z + 1);
-            lastTile = temp.transform.position;
-            tiles.Add(temp);
-        }
-    } */
 
     public void InititializeLevel()
     {
@@ -78,6 +69,25 @@ public class LevelManager : MonoBehaviour {
             lastTile = new Vector3(temp.transform.position.x, 0, 2);
             tiles.Add(temp);
         }
+
+        if (GameLogic.gameMode == GameLogic.GameMode.RACE)
+        {
+            RaceMode();
+        }
+        else if(GameLogic.gameMode == GameLogic.GameMode.INFINITE)
+        {
+            EventManager.THRESHOLD_COLLIDE += InfiniteMode;
+            InfiniteMode(initialMapSizeForInfiniteRunner);
+        }
+
+
+        
+    }
+
+    private void RaceMode()
+    {
+        //Possibly Handle Networked SEED for map generation based on HOST
+
         for (int l = 0; l < levelLength; l++)
         {
             if (lastEnv == 0)
@@ -96,11 +106,7 @@ public class LevelManager : MonoBehaviour {
                             int randLength = Random.Range(min_fieldLength, max_fieldLength);
                             for (int i = 0; i < randLength; i++)
                             {
-                                int randTile = Random.Range(0, fieldPrefabs.Length);
-                                GameObject temp = Instantiate(fieldPrefabs[randTile], parent) as GameObject;
-                                temp.transform.position = new Vector3(temp.transform.position.x, 0, lastTile.z + 1);
-                                lastTile = temp.transform.position;
-                                tiles.Add(temp);
+                                SpawnTile(fieldPrefabs);
                             }
                         }
                     }
@@ -112,11 +118,7 @@ public class LevelManager : MonoBehaviour {
                             int randLength = Random.Range(min_roadLength, max_roadLength);
                             for (int i = 0; i < randLength; i++)
                             {
-                                int randTile = Random.Range(0, roadPrefabs.Length);
-                                GameObject temp = Instantiate(roadPrefabs[randTile], parent) as GameObject;
-                                temp.transform.position = new Vector3(temp.transform.position.x, 0, lastTile.z + 1);
-                                lastTile = temp.transform.position;
-                                tiles.Add(temp);
+                                SpawnTile(roadPrefabs);
                             }
                         }
                     }
@@ -127,23 +129,87 @@ public class LevelManager : MonoBehaviour {
                         {
                             int randDir = Random.Range(-2, 2);
                             randDir = randDir < 0 ? -1 : 1;
-                            
+
                             int randLength = Random.Range(min_waterLength, max_waterLength);
                             for (int i = 0; i < randLength; i++)
                             {
-                                int randTile = Random.Range(0, waterPrefabs.Length);
-                                GameObject temp = Instantiate(waterPrefabs[randTile], parent) as GameObject;
-                                temp.transform.position = new Vector3(temp.transform.position.x, 0, lastTile.z + 1);
-                                temp.transform.GetChild(0).GetComponent<Water>().waterFlow = randDir;
+                                SpawnTile(waterPrefabs).transform.GetChild(0).GetComponent<Water>().waterFlow = randDir;
                                 randDir *= -1;
-                                lastTile = temp.transform.position;
-                                tiles.Add(temp);
                             }
                         }
                     }
                     break;
             }
         }
+    }
+    private void InfiniteMode(int recur)
+    {
+        if (lastEnv == 0)
+        {
+            randEnv = Random.Range(0, 3);
+            lastEnv = randEnv;
+        }
+        else randEnv = lastEnv = 0;
+
+        switch (randEnv)
+        {
+            case 0:
+                {
+                    if (fieldPrefabs.Length > 0)
+                    {
+                        int randLength = Random.Range(min_fieldLength, max_fieldLength);
+                        TileThreshold.threshold_move = randLength;
+                        for (int i = 0; i < randLength; i++)
+                        {
+                            SpawnTile(fieldPrefabs);
+                        }
+                    }
+                }
+                break;
+            case 1:
+                {
+                    if (roadPrefabs.Length > 0)
+                    {
+                        int randLength = Random.Range(min_roadLength, max_roadLength);
+                        TileThreshold.threshold_move = randLength;
+                        for (int i = 0; i < randLength; i++)
+                        {
+                            SpawnTile(roadPrefabs);
+                        }
+                    }
+                }
+                break;
+            case 2:
+                {
+                    if (waterPrefabs.Length > 0)
+                    {
+                        int randDir = Random.Range(-2, 2);
+                        randDir = randDir < 0 ? -1 : 1;
+
+                        int randLength = Random.Range(min_waterLength, max_waterLength);
+                        TileThreshold.threshold_move = randLength;
+                        for (int i = 0; i < randLength; i++)
+                        {
+                            SpawnTile(waterPrefabs).transform.GetChild(0).GetComponent<Water>().waterFlow = randDir;
+                            randDir *= -1;
+                        }
+                    }
+                }
+                break;
+        }
+
+        if (recur > 0) InfiniteMode(recur - 1);
+    }
+
+    private GameObject SpawnTile(GameObject[] prefabs)
+    {
+        int randTile = Random.Range(0, prefabs.Length);
+        GameObject temp = Instantiate(prefabs[randTile], parent) as GameObject;
+        temp.transform.position = new Vector3(temp.transform.position.x, 0, lastTile.z + 1);
+        lastTile = temp.transform.position;
+        tiles.Add(temp);
+        return tiles[tiles.Count - 1];
+        
     }
 
     public void CheckTiles(float playerPosZ)

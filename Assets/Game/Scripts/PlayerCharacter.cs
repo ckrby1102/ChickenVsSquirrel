@@ -49,12 +49,12 @@ public class PlayerCharacter : MonoBehaviour {
                 if (transform.position.z + (1 * hopSpaces) < forwardMax)
                 {
                     Move(Vector3.forward, 0);
-                    if (transform.position.z > GameManager.MOVE_BACKWARDS_DISTANCE)
+                    if (transform.position.z > GameLogic.MOVE_BACKWARDS_DISTANCE)
                     {
-                        if (backwardMax < transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE)
-                            backwardMax = transform.position.z - GameManager.MOVE_BACKWARDS_DISTANCE;
+                        if (backwardMax < transform.position.z - GameLogic.MOVE_BACKWARDS_DISTANCE)
+                            backwardMax = transform.position.z - GameLogic.MOVE_BACKWARDS_DISTANCE;
                     }
-                    EventManager.OnPlayerMoveZ(transform.position.z);
+                    EventManager.CallPlayerMoveZ(transform.position.z);
                 }
             }
             else if (!moving && Input.GetKeyUp(KeyCode.S))
@@ -62,7 +62,7 @@ public class PlayerCharacter : MonoBehaviour {
                 if (transform.position.z + (-1 * hopSpaces) > backwardMax)
                 {
                     Move(-Vector3.forward, 360);
-                    EventManager.OnPlayerMoveZ(transform.position.z);
+                    EventManager.CallPlayerMoveZ(transform.position.z);
                 }
             }
             else if (!moving && Input.GetKeyUp(KeyCode.D))
@@ -78,7 +78,7 @@ public class PlayerCharacter : MonoBehaviour {
         if (isOnLog)
         {
             endpos = targetLogSnapPoint.position;
-            transform.position = Vector3.MoveTowards(transform.position, endpos, Time.deltaTime * (speed + logScript.speed));
+            transform.position = Vector3.MoveTowards(transform.position, endpos, Time.deltaTime * (speed /*+ logScript.speed*/));
         }
         else
         {
