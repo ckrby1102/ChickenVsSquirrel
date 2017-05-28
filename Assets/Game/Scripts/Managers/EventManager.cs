@@ -23,4 +23,14 @@ public class EventManager {
             PLAYER_MOVE_Z(pos);
         }
     }
+    //Call Event to handle type of player death
+    public delegate void OnDangerCollide(string danger);
+    public static event OnDangerCollide DANGER_COLLIDE;
+    public static void CallDangerCollide(string danger)
+    {
+        if (DANGER_COLLIDE != null)
+        {
+            DANGER_COLLIDE(danger);
+        }
+    }
 }

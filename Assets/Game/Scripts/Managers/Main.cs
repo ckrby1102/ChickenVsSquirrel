@@ -37,6 +37,8 @@ public class Main : ChrisCustomBehaviour {
         InitCameras();
         InitLighting();
 
+        Random.InitState((int)System.DateTime.Now.Ticks);
+
         ref_GameLogic = FindObjectOfType<GameLogic>();
         ref_GameLogic.Init();
     }

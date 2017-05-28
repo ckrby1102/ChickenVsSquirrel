@@ -9,7 +9,6 @@ public class TileThreshold : MonoBehaviour {
     {
         if (other.tag == "Player")
         {
-            print(threshold_move);
             transform.position = new Vector3(transform.position.x, 0, transform.position.z + threshold_move);
             EventManager.CallThresholdCollide(0);
         }
