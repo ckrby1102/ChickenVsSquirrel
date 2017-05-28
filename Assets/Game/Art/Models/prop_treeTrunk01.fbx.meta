@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: c4a96e40228cfa84e9be1a2edccf420d
-timeCreated: 1496014184
+guid: 5f2966116b290c643b489b2e8b2db5b5
+timeCreated: 1496014320
 licenseType: Free
 ModelImporter:
   serializedVersion: 21
@@ -9,7 +9,7 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: LiliPad:Mesh
+    4300000: prop_treeTrunk01:Mesh
     9500000: //RootNode
   materials:
     importMaterials: 1
